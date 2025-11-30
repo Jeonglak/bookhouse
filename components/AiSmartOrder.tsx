@@ -211,7 +211,7 @@ export default function AiSmartOrder({ onAddItems }: AiSmartOrderProps) {
                                         </div>
                                         <button
                                             onClick={() => handleAddItem(idx)}
-                                            className="self-center rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 whitespace-nowrap"
+                                            className="self-center rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 whitespace-nowrap md:px-3 md:py-1.5"
                                         >
                                             추가
                                         </button>

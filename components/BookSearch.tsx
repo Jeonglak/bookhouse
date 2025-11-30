@@ -79,7 +79,7 @@ export default function BookSearch({ onAddBook }: BookSearchProps) {
                         </div>
                         <button
                             onClick={() => onAddBook(book)}
-                            className="rounded-md border border-navy-600 px-3 py-1 text-sm text-navy-600 hover:bg-navy-50"
+                            className="rounded-md border border-navy-600 px-4 py-2 text-sm text-navy-600 hover:bg-navy-50 md:px-3 md:py-1"
                             style={{ borderColor: '#000080', color: '#000080' }}
                         >
                             추가

@@ -81,10 +81,12 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="mx-auto max-w-4xl px-4">
-        <header className="mb-8 text-center relative">
-          <h1 className="text-3xl font-bold text-navy-900" style={{ color: '#000080' }}>도서 주문 시스템</h1>
-          <p className="mt-2 text-gray-600">필요한 도서를 검색하여 주문 목록에 담아주세요.</p>
-          <div className="absolute top-0 right-0 flex gap-4 text-sm">
+        <header className="mb-8 text-center relative flex flex-col items-center gap-4 md:block">
+          <div>
+            <h1 className="text-3xl font-bold text-navy-900" style={{ color: '#000080' }}>도서 주문 시스템</h1>
+            <p className="mt-2 text-gray-600">필요한 도서를 검색하여 주문 목록에 담아주세요.</p>
+          </div>
+          <div className="flex gap-4 text-sm md:absolute md:top-0 md:right-0">
             <span className="text-gray-600">{user.academyName}님</span>
             <a href="/my-orders" className="text-blue-600 hover:underline">내 주문</a>
             {(user.username === 'admin' || user.username === '북하우스') && (
