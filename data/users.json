@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1764522792569",
+    "username": "cjl9310",
+    "password": "911219",
+    "academyName": "북하우스",
+    "contact": "010-3360-4360"
+  },
+  {
+    "id": "admin_bukhouse",
+    "username": "북하우스",
+    "password": "1234",
+    "academyName": "북하우스 관리자",
+    "contact": "010-0000-0000"
+  }
+]

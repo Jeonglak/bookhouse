@@ -1,0 +1,112 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function SignupPage() {
+    const router = useRouter();
+    const [formData, setFormData] = useState({
+        username: '',
+        password: '',
+        academyName: '',
+        contact: '',
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert('회원가입이 완료되었습니다. 로그인해주세요.');
+                router.push('/login');
+            } else {
+                alert(data.error || '회원가입 실패');
+            }
+        } catch (error) {
+            alert('서버 오류가 발생했습니다.');
+        }
+    };
+
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+            <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-md">
+                <div className="text-center">
+                    <h2 className="text-3xl font-bold text-gray-900">회원가입</h2>
+                    <p className="mt-2 text-gray-600">도서 주문 시스템을 이용하기 위해 가입해주세요.</p>
+                </div>
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="username" className="block text-sm font-medium text-gray-700">아이디</label>
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                required
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-navy-500"
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">비밀번호</label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                required
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-navy-500"
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="academyName" className="block text-sm font-medium text-gray-700">학원명 (필수)</label>
+                            <input
+                                id="academyName"
+                                name="academyName"
+                                type="text"
+                                required
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-navy-500"
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="contact" className="block text-sm font-medium text-gray-700">전화번호 (필수)</label>
+                            <input
+                                id="contact"
+                                name="contact"
+                                type="text"
+                                required
+                                placeholder="010-0000-0000"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-navy-500 focus:outline-none focus:ring-navy-500"
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full rounded-md bg-navy-800 px-4 py-2 text-white hover:bg-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2"
+                        style={{ backgroundColor: '#000080' }}
+                    >
+                        가입하기
+                    </button>
+                </form>
+                <div className="text-center text-sm">
+                    <a href="/login" className="font-medium text-navy-600 hover:text-navy-500" style={{ color: '#000080' }}>
+                        이미 계정이 있으신가요? 로그인
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+}
