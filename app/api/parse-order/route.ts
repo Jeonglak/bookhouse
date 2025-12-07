@@ -12,31 +12,51 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Text is required' }, { status: 400 });
         }
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        // Try multiple models in order of preference/stability
+        const modelsToTry = ['gemini-1.5-flash-002', 'gemini-2.0-flash-exp', 'gemini-1.5-flash'];
+        let textResponse = '';
+        let lastError;
 
-        const prompt = `
-      You are a book order parser. Convert the user's input text into a JSON Array of book orders.
-      
-      Rules:
-      1. Extract 'title' and 'quantity' (number).
-      2. Default quantity is 1 if not specified.
-      3. Correct typos (e.g., '공수' -> '공통수학', '쏀' -> '쎈').
-      4. Ignore greetings or irrelevant text.
-      5. Output ONLY the JSON Array. No markdown, no explanations.
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`Attempting to use model: ${modelName}`);
+                const model = genAI.getGenerativeModel({ model: modelName });
 
-      Examples:
-      Input: "쎈 수1 3권, 마플 시너지 수2"
-      Output: [{"title": "쎈 수1", "quantity": 3}, {"title": "마플 시너지 수2", "quantity": 1}]
+                const prompt = `
+              You are a book order parser. Convert the user's input text into a JSON Array of book orders.
+              
+              Rules:
+              1. Extract 'title' and 'quantity' (number).
+              2. Default quantity is 1 if not specified.
+              3. Correct typos (e.g., '공수' -> '공통수학', '쏀' -> '쎈').
+              4. Ignore greetings or irrelevant text.
+              5. Output ONLY the JSON Array. No markdown, no explanations.
+        
+              Examples:
+              Input: "쎈 수1 3권, 마플 시너지 수2"
+              Output: [{"title": "쎈 수1", "quantity": 3}, {"title": "마플 시너지 수2", "quantity": 1}]
+        
+              Input: "개념원리 대수"
+              Output: [{"title": "개념원리 대수", "quantity": 1}]
+        
+              Input: ${text}
+            `;
 
-      Input: "개념원리 대수"
-      Output: [{"title": "개념원리 대수", "quantity": 1}]
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                textResponse = response.text();
 
-      Input: ${text}
-    `;
+                if (textResponse) break; // Success!
+            } catch (error) {
+                console.warn(`Failed with model ${modelName}:`, error);
+                lastError = error;
+                // Continue to next model
+            }
+        }
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const textResponse = response.text();
+        if (!textResponse) {
+            throw lastError || new Error('All models failed');
+        }
 
         console.log('Gemini Raw Response:', textResponse); // Debug log
 
