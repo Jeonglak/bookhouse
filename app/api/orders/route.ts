@@ -1,82 +1,91 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-
-const dataFilePath = path.join(process.cwd(), 'data', 'orders.json');
-
-// Helper to read data
-function getOrders() {
-    if (!fs.existsSync(dataFilePath)) {
-        return [];
-    }
-    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
-    try {
-        return JSON.parse(fileContent);
-    } catch (e) {
-        return [];
-    }
-}
-
-// Helper to write data
-function saveOrders(orders: any[]) {
-    fs.writeFileSync(dataFilePath, JSON.stringify(orders, null, 2), 'utf-8');
-}
+import { supabase } from '@/utils/supabase';
 
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    try {
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
 
-    const orders = getOrders();
+        let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
 
-    if (userId) {
-        const userOrders = orders.filter((order: any) => order.userId === userId);
-        // Sort by date desc
-        userOrders.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        return NextResponse.json(userOrders);
+        if (userId) {
+            query = query.eq('user_id', userId);
+        }
+
+        const { data: orders, error } = await query;
+
+        if (error) {
+            console.error('Supabase Fetch Error:', error);
+            return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+        }
+
+        // Map snake_case to camelCase for frontend
+        const mappedOrders = orders?.map(order => ({
+            id: order.id,
+            userId: order.user_id,
+            items: order.items,
+            totalAmount: order.total_amount,
+            totalPrice: order.total_amount, // Frontend uses totalPrice
+            status: order.status,
+            date: order.created_at,
+            academyName: order.academy_name,
+            contact: order.contact,
+            request: order.request,
+            totalQuantity: order.items.reduce((sum: number, item: any) => sum + item.quantity, 0)
+        }));
+
+        return NextResponse.json(mappedOrders);
+    } catch (error) {
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
-
-    // Admin view: all orders sorted by date desc
-    orders.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return NextResponse.json(orders);
 }
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
-        const orders = getOrders();
+        const orderData = await request.json();
 
-        const newOrder = {
-            id: Date.now().toString(),
-            date: new Date().toISOString(),
-            status: '주문접수', // Default status
-            ...body,
-        };
+        const { data, error } = await supabase
+            .from('orders')
+            .insert([
+                {
+                    user_id: orderData.userId,
+                    items: orderData.items,
+                    total_amount: orderData.totalPrice, // Frontend sends totalPrice
+                    status: '주문접수',
+                    academy_name: orderData.academyName,
+                    contact: orderData.contact,
+                    request: orderData.request
+                }
+            ])
+            .select()
+            .single();
 
-        orders.unshift(newOrder); // Add to beginning
-        saveOrders(orders);
+        if (error) {
+            console.error('Supabase Order Insert Error:', error);
+            return NextResponse.json({ error: 'Failed to save order' }, { status: 500 });
+        }
 
-        return NextResponse.json({ success: true, order: newOrder });
+        return NextResponse.json({ success: true, order: data });
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to save order' }, { status: 500 });
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
 
 export async function PATCH(request: Request) {
     try {
-        const body = await request.json();
-        const { id, status } = body;
-        const orders = getOrders();
+        const { id, status } = await request.json(); // Frontend sends 'id' for PATCH
 
-        const orderIndex = orders.findIndex((order: any) => order.id === id);
-        if (orderIndex === -1) {
-            return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        const { error } = await supabase
+            .from('orders')
+            .update({ status })
+            .eq('id', id);
+
+        if (error) {
+            return NextResponse.json({ error: 'Failed to update status' }, { status: 500 });
         }
 
-        orders[orderIndex].status = status;
-        saveOrders(orders);
-
-        return NextResponse.json({ success: true, order: orders[orderIndex] });
+        return NextResponse.json({ success: true });
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
