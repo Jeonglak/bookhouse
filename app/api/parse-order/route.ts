@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
     try {
         const { text } = await request.json();
-        const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        const apiKey = process.env.OPENAI_API_KEY;
 
         if (!text) {
             return NextResponse.json({ error: 'Text is required' }, { status: 400 });
@@ -11,10 +11,10 @@ export async function POST(request: Request) {
 
         if (!apiKey) {
             console.error('API Key missing');
-            return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+            return NextResponse.json({ error: 'Server configuration error: OPENAI_API_KEY is missing' }, { status: 500 });
         }
 
-        const prompt = `
+        const systemPrompt = `
       You are a book order parser. Convert the user's input text into a JSON Array of book orders.
       
       Rules:
@@ -26,77 +26,48 @@ export async function POST(request: Request) {
 
       Examples:
       Input: "쎈 수1 3권, 마플 시너지 수2"
-      Output: [{"title": "쎈 수1", "quantity": 3}, {"title": "마플 시너지 수2", "quantity": 1}]
+      Output: {"items": [{"title": "쎈 수1", "quantity": 3}, {"title": "마플 시너지 수2", "quantity": 1}]}
 
       Input: "개념원리 대수"
-      Output: [{"title": "개념원리 대수", "quantity": 1}]
-
-      Input: ${text}
+      Output: {"items": [{"title": "개념원리 대수", "quantity": 1}]}
     `;
 
-        // Function to call Gemini REST API
-        async function callGemini(modelName: string) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: text }
+                ],
+                response_format: { type: 'json_object' },
+                temperature: 0.1,
+            })
+        });
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: prompt }]
-                    }]
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('OpenAI API Error:', errorData);
+            throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
         }
 
-        // Try models in order: gemini-1.5-flash -> gemini-pro
-        let textResponse = '';
-        let lastError;
+        const data = await response.json();
+        const content = data.choices[0].message.content;
+
+        console.log('OpenAI Raw Response:', content);
 
         try {
-            console.log('Attempting gemini-1.5-flash via REST...');
-            textResponse = await callGemini('gemini-1.5-flash');
-        } catch (e) {
-            console.warn('gemini-1.5-flash failed, trying gemini-pro...', e);
-            try {
-                textResponse = await callGemini('gemini-pro');
-            } catch (e2) {
-                console.error('All models failed');
-                lastError = e2;
-            }
-        }
-
-        if (!textResponse) {
-            throw lastError || new Error('Failed to generate content');
-        }
-
-        console.log('Gemini Raw Response:', textResponse);
-
-        // Clean up markdown code blocks if present
-        let cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        // Attempt to find JSON array if mixed with text
-        const jsonArrayMatch = cleanJson.match(/\[[\s\S]*\]/);
-        if (jsonArrayMatch) {
-            cleanJson = jsonArrayMatch[0];
-        }
-        try {
-            const parsedData = JSON.parse(cleanJson);
-            return NextResponse.json({ items: parsedData });
+            const parsedData = JSON.parse(content);
+            // Handle both array and object wrapper formats
+            const items = Array.isArray(parsedData) ? parsedData : parsedData.items || [];
+            return NextResponse.json({ items });
         } catch (e) {
             console.error('JSON Parse Error:', e);
-            console.error('Failed JSON content:', cleanJson);
-            return NextResponse.json({ error: 'Failed to parse AI response', raw: textResponse }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to parse AI response', raw: content }, { status: 500 });
         }
 
     } catch (error) {
