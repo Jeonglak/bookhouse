@@ -100,6 +100,7 @@ export default function AdminPage() {
                         메인으로 돌아가기
                     </button>
                 </div>
+                <p className="text-right text-xs text-gray-400 mb-4">Admin System v1.1 (Debug Mode)</p>
 
                 <div className="space-y-6">
                     {orders.map((order) => (
