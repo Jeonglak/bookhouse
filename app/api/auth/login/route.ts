@@ -12,6 +12,19 @@ export async function POST(request: Request) {
             );
         }
 
+        // Hardcoded Admin Login
+        if (username === '북하우스' && password === '1234') {
+            return NextResponse.json({
+                success: true,
+                user: {
+                    username: '북하우스',
+                    name: '관리자',
+                    academyName: '북하우스',
+                    contact: '010-0000-0000'
+                },
+            });
+        }
+
         // Find user by username and password
         const { data: user, error } = await supabase
             .from('users')

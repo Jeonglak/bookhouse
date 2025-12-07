@@ -2,6 +2,7 @@
 
 import { CartItem } from '@/types';
 import Image from 'next/image';
+import QuantityInput from './QuantityInput';
 
 interface OrderListProps {
     items: CartItem[];
@@ -61,12 +62,9 @@ export default function OrderList({ items, onUpdateQuantity, onRemove }: OrderLi
                                     <td className="px-6 py-4 font-medium text-gray-900" dangerouslySetInnerHTML={{ __html: item.title }} />
                                     <td className="px-6 py-4">{price.toLocaleString()}원</td>
                                     <td className="px-6 py-4">
-                                        <input
-                                            type="number"
-                                            min="1"
+                                        <QuantityInput
                                             value={item.quantity}
-                                            onChange={(e) => onUpdateQuantity(item.isbn, parseInt(e.target.value) || 1)}
-                                            className="w-20 rounded-md border border-gray-300 px-2 py-1 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500"
+                                            onUpdate={(newQuantity) => onUpdateQuantity(item.isbn, newQuantity)}
                                         />
                                     </td>
                                     <td className="px-6 py-4 font-medium text-blue-600">{(price * item.quantity).toLocaleString()}원</td>
