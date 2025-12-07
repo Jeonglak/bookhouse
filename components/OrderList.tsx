@@ -1,6 +1,7 @@
 'use client';
 
 import { CartItem } from '@/types';
+import Image from 'next/image';
 
 interface OrderListProps {
     items: CartItem[];
@@ -45,10 +46,12 @@ export default function OrderList({ items, onUpdateQuantity, onRemove }: OrderLi
                                     <td className="px-6 py-4">
                                         <div className="relative h-16 w-12 bg-gray-100">
                                             {item.image ? (
-                                                <img
+                                                <Image
                                                     src={item.image}
                                                     alt={item.title}
-                                                    className="h-full w-full object-cover"
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="48px"
                                                 />
                                             ) : (
                                                 <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">No Image</div>

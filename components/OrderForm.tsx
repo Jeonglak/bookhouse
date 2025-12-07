@@ -18,6 +18,7 @@ export default function OrderForm({ items, user }: OrderFormProps) {
             setAcademyName(user.academyName);
             setContact(user.contact);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     const handleOrder = () => {

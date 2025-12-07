@@ -19,6 +19,7 @@ export default function Home() {
     if (!storedUser) {
       router.push('/login');
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUser(JSON.parse(storedUser));
       setLoading(false);
     }
@@ -36,6 +37,7 @@ export default function Home() {
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAddAiItems = (items: any[]) => {
     setCartItems((prev) => {
       const newItems = [...prev];

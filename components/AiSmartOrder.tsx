@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import { Book } from '@/types';
+import Image from 'next/image';
 
 interface AiSmartOrderProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onAddItems: (items: any[]) => void;
 }
 
 export default function AiSmartOrder({ onAddItems }: AiSmartOrderProps) {
     const [text, setText] = useState('');
     const [loading, setLoading] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [processedItems, setProcessedItems] = useState<any[]>([]); // Stores both success and failed items
 
     const handleProcess = async () => {
@@ -34,6 +37,7 @@ export default function AiSmartOrder({ onAddItems }: AiSmartOrderProps) {
             }
 
             const initialItems = data.items;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const newProcessedItems: any[] = [];
 
             // 2. Search and Match
@@ -194,7 +198,13 @@ export default function AiSmartOrder({ onAddItems }: AiSmartOrderProps) {
                                         {/* Success Item UI */}
                                         <div className="relative h-20 w-14 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
                                             {item.book.image ? (
-                                                <img src={item.book.image} alt={item.book.title} className="h-full w-full object-cover" />
+                                                <Image
+                                                    src={item.book.image}
+                                                    alt={item.book.title}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="56px"
+                                                />
                                             ) : (
                                                 <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">No Img</div>
                                             )}

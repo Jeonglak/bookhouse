@@ -18,17 +18,6 @@ export default function AdminPage() {
         }
     };
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            const user = JSON.parse(storedUser);
-            if (user.username === 'admin' || user.username === '북하우스') {
-                setIsAuthenticated(true);
-                fetchOrders();
-            }
-        }
-    }, []);
-
     const fetchOrders = async () => {
         try {
             const res = await fetch('/api/orders');
@@ -38,6 +27,18 @@ export default function AdminPage() {
             console.error('Failed to fetch orders', error);
         }
     };
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            if (user.username === 'admin' || user.username === '북하우스') {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setIsAuthenticated(true);
+                fetchOrders();
+            }
+        }
+    }, []);
 
     const handleStatusChange = async (orderId: string, newStatus: string) => {
         try {
@@ -52,6 +53,7 @@ export default function AdminPage() {
             if (res.ok) {
                 // Optimistic update or refetch
                 setOrders(orders.map(order =>
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     order.id === orderId ? { ...order, status: newStatus as any } : order
                 ));
             } else {

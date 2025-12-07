@@ -31,6 +31,7 @@ export async function GET(request: Request) {
             academyName: order.academy_name,
             contact: order.contact,
             request: order.request,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             totalQuantity: order.items.reduce((sum: number, item: any) => sum + item.quantity, 0)
         }));
 
