@@ -21,7 +21,7 @@ export default function AiSmartOrder({ onAddItems }: AiSmartOrderProps) {
         setLoading(true);
         setProcessedItems([]); // Clear previous results
         try {
-            // 1. Parse Text
+            // Call the integrated API (AI Parse + Naver Search)
             const res = await fetch('/api/parse-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -29,49 +29,15 @@ export default function AiSmartOrder({ onAddItems }: AiSmartOrderProps) {
             });
             const data = await res.json();
 
-            if (!data.items) {
+            if (!data.results) {
                 const errorMessage = data.details || data.error || '분석에 실패했습니다.';
                 alert(`오류: ${errorMessage}\n(서버 재시작이 필요할 수 있습니다)`);
                 setLoading(false);
                 return;
             }
 
-            const initialItems = data.items;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const newProcessedItems: any[] = [];
-
-            // 2. Search and Match
-            for (const item of initialItems) {
-                try {
-                    const searchRes = await fetch(`/api/search?query=${encodeURIComponent(item.title)}`);
-                    const searchData = await searchRes.json();
-
-                    if (searchData.items && searchData.items.length > 0) {
-                        const bestMatch = searchData.items[0];
-                        newProcessedItems.push({
-                            type: 'success',
-                            originalTitle: item.title,
-                            quantity: Number(item.quantity),
-                            book: bestMatch
-                        });
-                    } else {
-                        newProcessedItems.push({
-                            type: 'failed',
-                            title: item.title,
-                            quantity: Number(item.quantity)
-                        });
-                    }
-                } catch (err) {
-                    console.error(`Failed to search for ${item.title}`, err);
-                    newProcessedItems.push({
-                        type: 'failed',
-                        title: item.title,
-                        quantity: Number(item.quantity)
-                    });
-                }
-            }
-
-            setProcessedItems(newProcessedItems);
+            // The API now returns fully processed items with search results
+            setProcessedItems(data.results);
 
         } catch (error) {
             console.error(error);
