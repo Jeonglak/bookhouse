@@ -47,17 +47,19 @@ export default function AdminPage() {
                 body: JSON.stringify({ id: orderId, status: newStatus }),
             });
 
+            const data = await res.json();
+
             if (res.ok) {
                 // Optimistic update or refetch
                 setOrders(orders.map(order =>
                     order.id === orderId ? { ...order, status: newStatus as any } : order
                 ));
             } else {
-                alert('상태 변경에 실패했습니다.');
+                alert(`상태 변경 실패: ${data.error || '알 수 없는 오류'}`);
             }
         } catch (error) {
             console.error('Failed to update status', error);
-            alert('오류가 발생했습니다.');
+            alert('네트워크 또는 서버 오류가 발생했습니다.');
         }
     };
 
@@ -110,8 +112,8 @@ export default function AdminPage() {
                                             value={order.status || '주문접수'}
                                             onChange={(e) => handleStatusChange(order.id, e.target.value)}
                                             className={`rounded border px-2 py-1 text-sm font-bold ${order.status === '주문완료' ? 'bg-green-100 text-green-800 border-green-200' :
-                                                    order.status === '취소됨' ? 'bg-red-100 text-red-800 border-red-200' :
-                                                        'bg-blue-100 text-blue-800 border-blue-200'
+                                                order.status === '취소됨' ? 'bg-red-100 text-red-800 border-red-200' :
+                                                    'bg-blue-100 text-blue-800 border-blue-200'
                                                 }`}
                                         >
                                             <option value="주문접수">주문접수</option>

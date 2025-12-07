@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
     try {
-        const { id, status } = await request.json(); // Frontend sends 'id' for PATCH
+        const { id, status } = await request.json();
 
         const { error } = await supabase
             .from('orders')
@@ -81,11 +81,12 @@ export async function PATCH(request: Request) {
             .eq('id', id);
 
         if (error) {
-            return NextResponse.json({ error: 'Failed to update status' }, { status: 500 });
+            console.error('Supabase Update Error:', error);
+            return NextResponse.json({ error: error.message, details: error }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Server error', details: String(error) }, { status: 500 });
     }
 }
