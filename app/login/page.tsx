@@ -82,9 +82,12 @@ export default function LoginPage() {
                         로그인
                     </button>
                 </form>
-                <div className="text-center text-sm">
+                <div className="flex justify-between text-sm">
                     <a href="/signup" className="font-medium text-navy-600 hover:text-navy-500" style={{ color: '#000080' }}>
                         계정이 없으신가요? 회원가입
+                    </a>
+                    <a href="/find-account" className="font-medium text-gray-600 hover:text-gray-500">
+                        아이디/비밀번호 찾기
                     </a>
                 </div>
             </div>
