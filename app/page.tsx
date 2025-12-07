@@ -53,12 +53,11 @@ export default function Home() {
     });
   };
 
-  const handleUpdateQuantity = (isbn: string, delta: number) => {
+  const handleUpdateQuantity = (isbn: string, newQuantity: number) => {
     setCartItems((prev) =>
       prev.map((item) => {
         if (item.isbn === isbn) {
-          const newQuantity = Math.max(1, item.quantity + delta);
-          return { ...item, quantity: newQuantity };
+          return { ...item, quantity: Math.max(1, newQuantity) };
         }
         return item;
       })
