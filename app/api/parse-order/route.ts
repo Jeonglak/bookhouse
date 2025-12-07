@@ -58,6 +58,11 @@ export async function POST(request: Request) {
         if (!aiResponse.ok) {
             const errorData = await aiResponse.json();
             console.error('OpenAI API Error:', errorData);
+
+            if (aiResponse.status === 429 || errorData.error?.code === 'insufficient_quota') {
+                throw new Error('OpenAI 사용량 한도 초과 또는 잔액 부족입니다. 결제 정보를 확인해주세요.');
+            }
+
             throw new Error(errorData.error?.message || `AI Error: ${aiResponse.status}`);
         }
 
